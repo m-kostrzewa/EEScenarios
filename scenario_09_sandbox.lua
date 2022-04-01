@@ -874,6 +874,10 @@ function setConstants()
 		["Wombat"]				= { strength = 18,	cargo = 3,	distance = 100,	long_range_radar = 18000, short_range_radar = 6000, tractor = false,	mining = false,	probes = 5,		pods = 1,	turbo_torp = false,	patrol_probe = 0,	prox_scan = 1,	epjam = 2,	},
 		["Wrocket"]				= { strength = 19,	cargo = 8,	distance = 200,	long_range_radar = 32000, short_range_radar = 5500, tractor = false,	mining = false,	probes = 10,	pods = 2,	turbo_torp = false,	patrol_probe = 0,	prox_scan = 1,	epjam = 0,	},
 		["XR-Lindworm"]			= { strength = 12,	cargo = 3,	distance = 100,	long_range_radar = 20000, short_range_radar = 6000, tractor = false,	mining = false,	probes = 5,		pods = 1,	turbo_torp = false,	patrol_probe = 3.9,	prox_scan = 9,	epjam = 0,	},
+
+		-- not sure the strenghts of Ktlitan Breaker and Ktlitan Feeder... they seem too high
+		["Ktlitan Breaker"]			= { strength = 45,	cargo = 0,	distance = 100,	long_range_radar = 10000, short_range_radar = 5000, tractor = false,	mining = false,	probes = 0,		pods = 0,	turbo_torp = false,	patrol_probe = 3.9,	prox_scan = 1,	epjam = 0,	},
+		["Ktlitan Feeder"]			= { strength = 48,	cargo = 0,	distance = 100,	long_range_radar = 10000, short_range_radar = 5000, tractor = false,	mining = false,	probes = 0,		pods = 0,	turbo_torp = false,	patrol_probe = 3.9,	prox_scan = 1,	epjam = 0,	},
 	}	
 	-- this table has ended up not in alphabetical order
 	-- likewise the creation functions are no longer in alphabetical order
@@ -953,12 +957,16 @@ function setConstants()
 	addPlayerShip("Wesson",		"Chavez",		createPlayerShipWesson		,"J")
 	addPlayerShip("Wiggy",		"Gull",			createPlayerShipWiggy		,"J")
 	addPlayerShip("Yorik",		"Rook",			createPlayerShipYorik		,"J")
+	addPlayerShip("Szpieg",		"Ktlitan Breaker",	createPlayerShipSzpieg	,"W")
+	addPlayerShip("Sztylet",	"Ktlitan Feeder",	createPlayerShipSztylet	,"W")
 	makePlayerShipActive("Spyder")		--J
 	makePlayerShipActive("Argonaut")	--J
 	makePlayerShipActive("Nimbus")		--B
 	makePlayerShipActive("Sting")		--W
 	makePlayerShipActive("Sparrow")		--W
 	makePlayerShipActive("Narsil")		--W
+	makePlayerShipActive("Szpieg")		--W
+	makePlayerShipActive("Sztylet")		--W
 	active_player_ship = true
 	--goodsList = {	{"food",0}, {"medicine",0},	{"nickel",0}, {"platinum",0}, {"gold",0}, {"dilithium",0}, {"tritanium",0}, {"luxury",0}, {"cobalt",0}, {"impulse",0}, {"warp",0}, {"shield",0}, {"tractor",0}, {"repulsor",0}, {"beam",0}, {"optic",0}, {"robotic",0}, {"filament",0}, {"transporter",0}, {"sensor",0}, {"communication",0}, {"autodoc",0}, {"lifter",0}, {"android",0}, {"nanites",0}, {"software",0}, {"circuit",0}, {"battery",0}	}
 	attackFleetFunction = {orderFleetAttack1,orderFleetAttack2,orderFleetAttack3,orderFleetAttack4,orderFleetAttack5,orderFleetAttack6,orderFleetAttack7,orderFleetAttack8}
@@ -14739,7 +14747,8 @@ function riptideBinarySector()
 	local regionCenterX = -740031
 	local regionCenterY = 19946
 
-	local riptideAlphaStar = BlackHole():setCallSign("Riptide A*"):setPosition(regionCenterX, regionCenterY):
+	--- global variable to be accessible in oneoffs.
+	riptideAlphaStar = BlackHole():setCallSign("Riptide A*"):setPosition(regionCenterX, regionCenterY):
 		setScanningParameters(2, 3):setDescriptions("Unclassified black hole", 
 			"Mass: 15.3 M Sol\n"..
 			"---\n" ..
@@ -14760,9 +14769,10 @@ function riptideBinarySector()
 			):setScanned(true)
 	table.insert(objects, riptideBeta)
 
-	local riptideGammaOrbitPeriod = 8000
-	local riptideGammaOrbitRadius = 100000
-	local riptideGamma = Planet():setCallSign("Riptide C"):setPosition(centerX, centerY + riptideGammaOrbitRadius):
+	--- global variables to be accessible in oneoffs.
+	riptideGammaOrbitPeriod = 8000
+	riptideGammaOrbitRadius = 100000
+	riptideGamma = Planet():setCallSign("Riptide C"):setPosition(centerX, centerY + riptideGammaOrbitRadius):
 		setPlanetRadius(4000):setOrbit(riptideAlphaStar, riptideGammaOrbitPeriod):setAxialRotationTime(180):
 		setPlanetSurfaceTexture("planets/gas-1.png"):
 		setPlanetAtmosphereTexture("planets/atmosphere.png"):setPlanetAtmosphereColor(.2,.1,.1):
@@ -14798,7 +14808,7 @@ function riptideBinarySector()
 		)
 	table.insert(objects, spacetimeLens)
 
-	lensedStationComms = function(comms_source, comms_target) 
+	psamtikStationComms = function(comms_source, comms_target) 
 		setCommsMessage("---------------------")
 		addCommsReply("Contact",function()
 			commsSwitchToGM()
@@ -14806,11 +14816,11 @@ function riptideBinarySector()
 			addCommsReply("Back", commsStation)
 		end)
 	end
-	lensedStation = SpaceStation():setTemplate("Small Station"):setFaction("Arlenians"):
+	psamtikStation = SpaceStation():setTemplate("Small Station"):setFaction("Arlenians"):
 		setCallSign("Psamtik"):
 		setDescription("An Arlenian station is detected inside the anomaly."):
-		setCommsScript(""):setCommsFunction(lensedStationComms):setScanned(false)
-	update_system:addUpdate(lensedStation, "riptide-icarus wormhole rotation", {
+		setCommsScript(""):setCommsFunction(psamtikStationComms):setScanned(false)
+	update_system:addUpdate(psamtikStation, "riptide-icarus wormhole rotation", {
 		anomaly=spacetimeLens,
 		update=function(self, obj, delta)
 			if not obj:isValid() then
@@ -14820,7 +14830,7 @@ function riptideBinarySector()
 			obj:setPosition(anX + 300, anY + 300) -- stay inside the center of anomaly
 		end
 	})
-	table.insert(objects, lensedStation)
+	table.insert(objects, psamtikStation)
 
 
 	--- I hand-placed asteroids based on this point, and was too lazy to convert to relative measurements. But let's do it programatically.
@@ -14977,11 +14987,11 @@ function riptideBinarySector()
 	table.insert(objects, riptideDelta)
 
 	--Riptide Research
-    stationRiptideResearch = SpaceStation():setTemplate("Small Station"):setFaction("Human Navy"):setCallSign("Hossenfelder"):setDescription("Stellar phenomenon research"):setCommsScript(""):setCommsFunction(commsStation)
-	stationRiptideResearch:setPosition(centerX - (riptideGammaOrbitRadius * math.sqrt(3) / 2) + 1300, centerY + riptideGammaOrbitRadius / 2)
-	update_system:addOrbitTargetUpdate(stationRiptideResearch, riptideDelta, 1300, 700, 0)
-	stationRiptideResearch:setShortRangeRadarRange(8500)
-	stationRiptideResearch.comms_data = {
+    stationHossenfelder = SpaceStation():setTemplate("Small Station"):setFaction("Human Navy"):setCallSign("Hossenfelder"):setDescription("Stellar phenomenon research"):setCommsScript(""):setCommsFunction(commsStation)
+	stationHossenfelder:setPosition(centerX - (riptideGammaOrbitRadius * math.sqrt(3) / 2) + 1300, centerY + riptideGammaOrbitRadius / 2)
+	update_system:addOrbitTargetUpdate(stationHossenfelder, riptideDelta, 1300, 700, 0)
+	stationHossenfelder:setShortRangeRadarRange(8500)
+	stationHossenfelder.comms_data = {
     	friendlyness = 77,
         weapons = 			{Homing = "neutral",HVLI = "neutral", 		Mine = "neutral",		Nuke = "friend", 			EMP = "friend"},
         weapon_cost =		{Homing = 3, 		HVLI = math.random(1,4),Mine = math.random(2,7),Nuke = math.random(10,18),	EMP = math.random(7,15) },
@@ -15006,10 +15016,10 @@ function riptideBinarySector()
 			DF3 = "WX-Lindworm",
     	},
 	}
-	stationRiptideResearch:setRestocksScanProbes(random(1,100)<87)
-	stationRiptideResearch:setRepairDocked(random(1,100)<76)
-	stationRiptideResearch:setSharesEnergyWithDocked(random(1,100)<92)
-	table.insert(objects, stationRiptideResearch)
+	stationHossenfelder:setRestocksScanProbes(random(1,100)<87)
+	stationHossenfelder:setRepairDocked(random(1,100)<76)
+	stationHossenfelder:setSharesEnergyWithDocked(random(1,100)<92)
+	table.insert(objects, stationHossenfelder)
 	
 	local gravityAcceleration = 500000
 	local slowOrbitDegPerSec = 360 / riptideGammaOrbitPeriod
@@ -15103,7 +15113,7 @@ function riptideBinarySector()
 
 
 
-	local riptideToIcarusWormHole = WormHole():setPosition(centerX, centerY - riptideGammaOrbitRadius):
+	riptideToIcarusWormHole = WormHole():setPosition(centerX, centerY - riptideGammaOrbitRadius):
 		setScanningParameters(2, 3):setDescriptions("Unexplored wormhole", 
 			"Anomaly type: Wormhole\n" ..
 			"Leads to: Icarus sector" ..
@@ -15125,46 +15135,6 @@ function riptideBinarySector()
 		end
 	})
 	table.insert(objects, riptideToIcarusWormHole)
-	
-
-	--- ktlitan artifacts to be picked up - for a scenario. Comment/remove if not needed
-	local art1 = Artifact():setModel("artifact3"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 3):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of enzyme generator, but we don't have sufficient equipment on board to analyze it.")
-	local art2 = Artifact():setModel("artifact4"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(1, 2):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of incubator, but we don't have sufficient equipment on board to analyze it.")
-	local art3 = Artifact():setModel("artifact7"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 1):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of power source, but we don't have sufficient equipment on board to analyze it.")
-	update_system:addOrbitTargetUpdate(art1, riptideAlphaStar, 8000, 55, 0)
-	update_system:addOrbitTargetUpdate(art2, riptideAlphaStar, 7000, 45, 120)
-	update_system:addOrbitTargetUpdate(art3, riptideAlphaStar, 7500, 50, 220)
-	local art4 = Artifact():setModel("artifact3"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 3):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of enzyme generator, but we don't have sufficient equipment on board to analyze it.")
-	local art5 = Artifact():setModel("artifact4"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(1, 2):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of incubator, but we don't have sufficient equipment on board to analyze it.")
-	local art6 = Artifact():setModel("artifact7"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 1):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of power source, but we don't have sufficient equipment on board to analyze it.")
-	update_system:addOrbitTargetUpdate(art4, riptideAlphaStar, riptideGammaOrbitRadius, riptideGammaOrbitPeriod, 27)
-	update_system:addOrbitTargetUpdate(art5, riptideAlphaStar, riptideGammaOrbitRadius - 2000, riptideGammaOrbitPeriod, 37)
-	update_system:addOrbitTargetUpdate(art6, riptideAlphaStar, riptideGammaOrbitRadius + 3000, riptideGammaOrbitPeriod, 45)
-	local art7 = Artifact():setModel("artifact3"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 3):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of enzyme generator, but we don't have sufficient equipment on board to analyze it.")
-	local art8 = Artifact():setModel("artifact4"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(1, 2):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of incubator, but we don't have sufficient equipment on board to analyze it.")
-	local art9 = Artifact():setModel("artifact7"):setPosition(centerX + 2000, centerY + riptideGammaOrbitRadius):allowPickup(true):setScanningParameters(2, 1):
-		setDescriptions("Ktlitan artifact", "Ktlitan artifact. It seems like some sort of power source, but we don't have sufficient equipment on board to analyze it.")
-	update_system:addOrbitTargetUpdate(art7, riptideGamma, 6000, 60, 33)
-	update_system:addOrbitTargetUpdate(art8, riptideGamma, 7000, 75, 120)
-	update_system:addOrbitTargetUpdate(art9, riptideGamma, 8000, 90, 220)
-	table.insert(objects, art1)
-	table.insert(objects, art2)
-	table.insert(objects, art3)
-	table.insert(objects, art4)
-	table.insert(objects, art5)
-	table.insert(objects, art6)
-	table.insert(objects, art7)
-	table.insert(objects, art8)
-	table.insert(objects, art9)
-
 
 	-- --- For a scenario; comment/remove if not needed
 	-- note: maryCeleste is a global variable - so we can remove orbit function in kosaiOneOff
@@ -15173,7 +15143,7 @@ function riptideBinarySector()
 			"Derelict Arlenian vessel, crewed by humans trying to figure out the mystery of Psamtik station."
 		)
 	maryCeleste:setRadarSignatureInfo(maryCeleste:getRadarSignatureGravity(), maryCeleste:getRadarSignatureElectrical(), 0)
-	maryCeleste:setPosition(centerX + 3000, centerY + anomalyOrbitRadius):setJumpDrive(true):orderDock(lensedStation):setFaction("Human Navy")
+	maryCeleste:setPosition(centerX + 3000, centerY + anomalyOrbitRadius):setJumpDrive(true):orderDock(psamtikStation):setFaction("Human Navy")
 	table.insert(objects, maryCeleste)
 
 	nebulaRotationAndFrictionUpdater = function(self, obj, delta)
@@ -20465,6 +20435,17 @@ function createPlayerShipYorik()
 	playerYorik:addReputationPoints(50)
 	return playerYorik
 end
+function createPlayerShipSzpieg()
+	p = PlayerSpaceship():setTemplate("Ktlitan Breaker"):setFaction("Human Navy"):setCallSign("Szpieg")
+	p:setWarpDrive(true)
+	p:onTakingDamage(playerShipDamage)
+end
+function createPlayerShipSztylet()
+	P = PlayerSpaceship():setTemplate("Ktlitan Feeder"):setFaction("Human Navy"):setCallSign("Sztylet")
+	p:setWarpDrive(true)
+	p:onTakingDamage(playerShipDamage)
+end
+
 --	Specialized ships spawned by a carrier
 function createPlayerShipFowl()
 	playerFowl = PlayerSpaceship():setTemplate("Player Fighter"):setFaction("Human Navy"):setCallSign("Chack")
@@ -26695,7 +26676,7 @@ function tsarina(enemyFaction)
 		setWeaponStorage("HVLI", 100):
 		setHull(300):
 		setShields(100, 50, 50):
-		setAI("fighter"):
+		setAI("default"):  -- note it's a change from fighter AI. with slower impulse speed this works better as a "snake" for the tail to attack as well.
 		setTypeName("Ktlitan Tsarina"):
 		setImpulseMaxSpeed(250):
 		setDescriptions("Undiscovered type of Ktlitan warship", "Ktlitan Tsarina is a subtype of Ktlitan Queen. It's side shields are weaker.  " ..
@@ -38861,6 +38842,23 @@ function kosaiOneOff()
 	addGMFunction("-Main From Kosai",initialGMFunctions)
 	addGMFunction("-Custom",customButtons)
 	addGMFunction("-One-Offs",oneOffs)
+	addGMFunction("Orbit RiptBin L4,5", function()
+		local objs =  getGMSelection()
+		local raX, raY = riptideAlphaStar:getPosition()
+		for i=1, #objs do
+			local obj = objs[i]
+			local objX, objY = obj:getPosition()
+			local initialOrbitAngle = angleFromVectorNorth(objX, objY, raX, raY) - 90
+			local orbitRadius = distance(obj, riptideAlphaStar)
+			update_system:addOrbitTargetUpdate(obj, riptideAlphaStar, orbitRadius, riptideGammaOrbitPeriod, initialOrbitAngle)
+		end
+	end)
+	addGMFunction("Unorbit RiptBin", function()
+		local objs =  getGMSelection()
+		for i=1, #objs do
+			update_system:removeUpdateNamed(objs[i], "orbit target")
+		end
+	end)
 	-- addGMFunction("HyperPortal", function()
 	-- 	removeGMFunction("HyperPortal")
 	-- 	addGMFunction(">HyperPortal<", function()
@@ -41755,6 +41753,14 @@ function handleDockedState()
 			addCommsReply("Back", commsStation)
 		end)
 	end
+	if comms_target == stationHossenfelder then
+		addCommsReply("I need information on this region",function()
+			setCommsMessage(psamtikStation:getCallSign() .. " is currently in sector " .. psamtikStation:getSectorName() .. " (Lagrange point 2). It houses the Arlenian Xenobiology Institute.\n" ..
+				"Wormhole leading back to Icarus is currently in sector " .. riptideToIcarusWormHole:getSectorName() .. " (Lagrange point 3).\n" ..
+				stationHossenfelder:getCallSign() .. " (us) is currently in sector " .. stationHossenfelder:getSectorName() .. " (Lagrange point 4)\n" ..
+				"Lagrange point can be found by mirroring L4 by the Riptide Alpha - Riptide Gamma axis.")
+		end)
+	end
 	if comms_target == stationLafrina then
 		addCommsReply("I need information on the Arlenian stations in the area",function()
 			setCommsMessage("Which station are you interested in?")
@@ -42651,6 +42657,14 @@ function handleUndockedState()
 			setCommsMessage(msg);
 			addCommsReply("Back", commsStation)
 		end)
+		if comms_target == stationHossenfelder then
+			addCommsReply("I need information on this region",function()
+				setCommsMessage(psamtikStation:getCallSign() .. " is currently in sector " .. psamtikStation:getSectorName() .. " (Lagrange point 2). It houses the Arlenian Xenobiology Institute.\n" ..
+					"Wormhole leading back to Icarus is currently in sector " .. riptideToIcarusWormHole:getSectorName() .. " (Lagrange point 3).\n" ..
+					stationHossenfelder:getCallSign() .. " (us) is currently in sector " .. stationHossenfelder:getSectorName() .. " (Lagrange point 4)\n" ..
+					"Lagrange point can be found by mirroring L4 by the Riptide Alpha - Riptide Gamma axis.")
+			end)
+		end
 		if comms_target == stationLafrina then
 			addCommsReply("I need information on the Arlenian stations in the area",function()
 				setCommsMessage("Which station are you interested in?")
